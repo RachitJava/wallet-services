@@ -1,0 +1,85 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: wallet-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-walletdb}
+      POSTGRES_USER: ${POSTGRES_USER:-wallet_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wallet_pass}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - wallet-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wallet_user} -d ${POSTGRES_DB:-walletdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Wallet Service Application
+  wallet-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wallet-service
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      # Database Configuration
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-walletdb}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-wallet_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-wallet_pass}
+      
+      # JPA/Hibernate Configuration
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${JPA_DDL_AUTO:-validate}
+      SPRING_JPA_SHOW_SQL: ${JPA_SHOW_SQL:-false}
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: ${JPA_FORMAT_SQL:-false}
+      
+      # Liquibase Configuration
+      SPRING_LIQUIBASE_ENABLED: ${LIQUIBASE_ENABLED:-true}
+      
+      # Application Configuration
+      SERVER_PORT: 8080
+      SPRING_APPLICATION_NAME: wallet-service
+      
+      # Logging Configuration
+      LOGGING_LEVEL_ROOT: ${LOG_LEVEL_ROOT:-INFO}
+      LOGGING_LEVEL_COM_WALLET: ${LOG_LEVEL_APP:-DEBUG}
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: ${LOG_LEVEL_SPRING:-INFO}
+      LOGGING_LEVEL_ORG_HIBERNATE: ${LOG_LEVEL_HIBERNATE:-WARN}
+      
+      # Connection Pool Configuration
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: ${DB_POOL_SIZE:-10}
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: ${DB_MIN_IDLE:-5}
+      SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: ${DB_CONNECTION_TIMEOUT:-30000}
+      SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT: ${DB_IDLE_TIMEOUT:-600000}
+      
+      # Actuator Configuration
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: ${ACTUATOR_ENDPOINTS:-health,info}
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: ${ACTUATOR_HEALTH_DETAILS:-when-authorized}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - wallet-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+networks:
+  wallet-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+

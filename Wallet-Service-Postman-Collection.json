@@ -1,0 +1,224 @@
+{
+  "info": {
+    "name": "Wallet Service API",
+    "description": "Complete Postman collection for testing the Wallet Service REST API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "walletId",
+      "value": "550e8400-e29b-41d4-a716-446655440000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Deposit to Wallet",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"walletId\": \"{{walletId}}\",\n  \"operationType\": \"DEPOSIT\",\n  \"amount\": 1000.00\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/wallet",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "wallet"]
+        },
+        "description": "Deposit funds into a wallet. Creates wallet if it doesn't exist."
+      },
+      "response": []
+    },
+    {
+      "name": "2. Get Wallet Balance",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/wallets/{{walletId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "wallets", "{{walletId}}"]
+        },
+        "description": "Retrieve the current balance of a wallet"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Withdraw from Wallet",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"walletId\": \"{{walletId}}\",\n  \"operationType\": \"WITHDRAW\",\n  \"amount\": 250.00\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/wallet",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "wallet"]
+        },
+        "description": "Withdraw funds from a wallet"
+      },
+      "response": []
+    },
+    {
+      "name": "4. Deposit More Funds",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"walletId\": \"{{walletId}}\",\n  \"operationType\": \"DEPOSIT\",\n  \"amount\": 500.00\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/wallet",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "wallet"]
+        },
+        "description": "Add more funds to an existing wallet"
+      },
+      "response": []
+    },
+    {
+      "name": "Error: Insufficient Funds",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"walletId\": \"{{walletId}}\",\n  \"operationType\": \"WITHDRAW\",\n  \"amount\": 999999.00\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/wallet",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "wallet"]
+        },
+        "description": "Test insufficient funds error (400 Bad Request)"
+      },
+      "response": []
+    },
+    {
+      "name": "Error: Wallet Not Found",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/wallets/00000000-0000-0000-0000-000000000001",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "wallets", "00000000-0000-0000-0000-000000000001"]
+        },
+        "description": "Test wallet not found error (404 Not Found)"
+      },
+      "response": []
+    },
+    {
+      "name": "Error: Negative Amount",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"walletId\": \"{{walletId}}\",\n  \"operationType\": \"DEPOSIT\",\n  \"amount\": -100.00\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/wallet",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "wallet"]
+        },
+        "description": "Test validation error for negative amount (400 Bad Request)"
+      },
+      "response": []
+    },
+    {
+      "name": "Error: Missing Fields",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 100.00\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/wallet",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "wallet"]
+        },
+        "description": "Test validation errors for missing required fields"
+      },
+      "response": []
+    },
+    {
+      "name": "Error: Invalid JSON",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{invalid json}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/wallet",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "wallet"]
+        },
+        "description": "Test invalid JSON error (400 Bad Request)"
+      },
+      "response": []
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/actuator/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["actuator", "health"]
+        },
+        "description": "Check application health status"
+      },
+      "response": []
+    }
+  ]
+}

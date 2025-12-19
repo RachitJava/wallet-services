@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    
+    <changeSet id="001-create-wallets-table" author="system">
+        <createTable tableName="wallets">
+            <column name="wallet_id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="balance" type="decimal(19,2)" defaultValue="0.00">
+                <constraints nullable="false" checkConstraint="CHECK (balance >= 0)"/>
+            </column>
+            <column name="version" type="bigint" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <rollback>
+            <dropTable tableName="wallets"/>
+        </rollback>
+    </changeSet>
+    
+    <changeSet id="002-add-wallet-index" author="system">
+        <createIndex indexName="idx_wallets_wallet_id" tableName="wallets">
+            <column name="wallet_id"/>
+        </createIndex>
+        
+        <rollback>
+            <dropIndex indexName="idx_wallets_wallet_id" tableName="wallets"/>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
+
